@@ -1,0 +1,2 @@
+﻿
+MERGE INTO Symbols WITH (HOLDLOCK) AS target  USING  (SELECT -1 as id  , 'CNCG' as Symbol , CONCIERGE TECH IN as Name  , US as Exchange  (id, Symbol, Name, Exchange)  ON  (target.id = source.id)  WHEN MATCHED  THEN UPDATE SET target.Symbol = source.Symbol, target.Name = source.Name, target.Exchange = source.Exchange  WHEN NOT MATCHED  THEN INSERT (Symbol, Name, Exchange)  VALUES ('CNCG', 'CONCIERGE TECH IN', 'US');   
