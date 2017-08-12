@@ -94,11 +94,11 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
-    <EntityDeploy Include="SymbolModel.edmx">
+    <EntityDeploy Include="Models\SymbolModel.edmx">
       <Generator>EntityModelCodeGenerator</Generator>
       <LastGenOutput>SymbolModel.Designer.cs</LastGenOutput>
     </EntityDeploy>
-    <Content Include="SymbolModel.edmx.diagram">
+    <Content Include="Models\SymbolModel.edmx.diagram">
       <DependentUpon>SymbolModel.edmx</DependentUpon>
     </Content>
     <None Include="Web.Debug.config">
@@ -130,12 +130,12 @@
     <Content Include="js\jquery.timepicker.js" />
     <Content Include="js\loader.js" />
     <Content Include="js\pablo.js" />
-    <Content Include="SymbolModel.Context.tt">
+    <Content Include="Models\SymbolModel.Context.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>SymbolModel.Context.cs</LastGenOutput>
       <DependentUpon>SymbolModel.edmx</DependentUpon>
     </Content>
-    <Content Include="SymbolModel.tt">
+    <Content Include="Models\SymbolModel.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <DependentUpon>SymbolModel.edmx</DependentUpon>
       <LastGenOutput>SymbolModel.cs</LastGenOutput>
@@ -154,31 +154,30 @@
     </Compile>
     <Compile Include="Log.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SymbolModel.Context.cs">
+    <Compile Include="Models\SymbolModel.Context.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>SymbolModel.Context.tt</DependentUpon>
     </Compile>
-    <Compile Include="SymbolModel.cs">
+    <Compile Include="Models\SymbolModel.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>SymbolModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="SymbolModel.Designer.cs">
+    <Compile Include="Models\SymbolModel.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>SymbolModel.edmx</DependentUpon>
     </Compile>
-    <Compile Include="tblStockData.cs">
+    <Compile Include="Models\tblStockData.cs">
       <DependentUpon>SymbolModel.tt</DependentUpon>
     </Compile>
-    <Compile Include="tblSymbol.cs">
+    <Compile Include="Models\tblSymbol.cs">
       <DependentUpon>SymbolModel.tt</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="css\images\" />
-    <Folder Include="Models\" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace StockWebApp
+namespace StockWebApp.Models
 {
     using System;
     using System.Collections.Generic;

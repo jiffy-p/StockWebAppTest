@@ -5,6 +5,7 @@ using System.Data.SqlClient;
 using System.Diagnostics;
 using System.Linq;
 using System.Web;
+using StockWebApp.Models;
 
 
 namespace StockWebApp

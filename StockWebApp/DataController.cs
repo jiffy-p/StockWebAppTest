@@ -8,6 +8,7 @@ using Microsoft.VisualBasic.FileIO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
+using StockWebApp.Models;
 
 
 namespace StockWebApp
