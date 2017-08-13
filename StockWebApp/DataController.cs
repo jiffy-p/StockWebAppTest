@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using Microsoft.VisualBasic.FileIO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -17,171 +18,153 @@ namespace StockWebApp
     {
         private const string ApiToken = "597a77fe02135";
 
-        public static List<tblSymbol> GetSymbols(string exchange)
+        public static List<tblSymbol> GetSymbolsFromApi()
         {
-            Log.Enter(nameof(GetSymbols));
+            const string methodName = nameof(GetSymbolsFromApi);
 
             try
             {
-                string csv;
-                using (var web = new WebClient())
-                {
-                    csv = web.DownloadString($@"https://eodhistoricaldata.com/api/exchanges/{exchange}?api_token={ApiToken}");
-                }
-
-                if (string.IsNullOrEmpty(csv))
-                {
-                    throw new Exception($"{nameof(csv)} is null or empty.");
-                }
+                Log.Enter(methodName);
 
                 var symbolList = new List<tblSymbol>();
-
-                using (var parser = new TextFieldParser(new StringReader(csv)))
+                var csv = $@"C:\StockWebAppTest\StockWebAppTest\cboesymboldir2.csv";
+                using (var parser = new TextFieldParser(csv))
                 {
-                    parser.HasFieldsEnclosedInQuotes = true;
-                    parser.SetDelimiters(",");
+                    if (string.IsNullOrEmpty(csv))
+                    {
+                        Log.WriteLine($"{methodName} - {nameof(csv)} is null or empty.");
+                        return symbolList;
+                    }
 
-                    var rowCount = 0;
+                    parser.HasFieldsEnclosedInQuotes = false;
+                    parser.TrimWhiteSpace = true;
+                    parser.SetDelimiters(",");
 
                     while (!parser.EndOfData)
                     {
-                        rowCount++; 
                         var fields = parser.ReadFields();
-                        var fieldCount = fields.Length;
-                        
-                        if (fieldCount <= 1)
-                        {
-                            break;
-                        }
 
-                        var empty = fields.Any(string.IsNullOrEmpty);
-                        if (empty)
+                        var hasEmptyField = false;
+
+                        foreach (var field in fields)
+                        {
+                            if (string.IsNullOrEmpty(field))
+                            {
+                                hasEmptyField = true;
+                                break;
+                            }
+                        }
+                        if (hasEmptyField)
                         {
                             continue;
                         }
 
-                        if (fields[0].Contains("Code"))
-                        {
-                            continue;
-                        }
-
-                        var symbol = new tblSymbol()
-                        {
-                            Symbol = fields[0],
-                            Name = fields[1],
-                            Exchange = fields[2]
-                        };
-                        Debug.WriteLine($"{nameof(GetSymbols)}:\t Symbol: \t {rowCount} - {symbol.Symbol} - {symbol.Name} - {symbol.Exchange}");
+                        var symbol = new tblSymbol();
+                        symbol.Symbol = fields[0];
+                        symbol.Name = fields[1];
+                        symbol.Exchange = "US";
 
                         symbolList.Add(symbol);
                     }
                 }
 
-                Debug.WriteLine($"Sorting Symbol List");
+                Log.WriteLine($"{methodName} - Sorting Symbol List");
                 symbolList.Sort((x, y) => string.CompareOrdinal(x.Symbol, y.Symbol));
 
                 return symbolList;
             }
             catch (Exception exception)
             {
-                Log.Exception(exception);
+                Log.Exception(exception, $"{methodName} - Error occured while getting Symbols from Api.");
                 throw;
             }
             finally
             {
-                Log.Exit(nameof(GetSymbols));
+                Log.Exit(methodName);
             }
         }
 
-        public static List<tblStockData> GetStockData(string exchange, IEnumerable<tblSymbol> symbolList)
+        public static List<tblStockData> GetStockDataFromApi(string exchange, string symbol)
         {
-            Log.Enter(nameof(GetStockData));
+            const string methodName = nameof(GetStockDataFromApi);
 
             try
             {
-                var stockDataList = new List<tblStockData>();
-                var rowCount = 0;
-
-                foreach (var item in symbolList)
-                {
-                    rowCount++;
-                    if (rowCount >= 200)
-                    {
-                        break;
-                    }
-
-                    var symbol = item.Symbol;
+                Log.Enter(methodName);
                 
-                    string csv;
-                    var fromDate = $"{DateTime.Now.Date.AddYears(-3):yyyy-M-d}";
-                    var toDate = $"{DateTime.Now.Date:yyyy-M-d}";
-                    using (var web = new WebClient())
-                    {
-                        var url = $@"https://eodhistoricaldata.com/api/eod/{symbol}.{exchange}?from={fromDate}&to={toDate}&api_token={DataController.ApiToken}&period=d";
-                        Debug.WriteLine($"{rowCount} - {symbol} - {url}");
-                        csv = web.DownloadString(url);
-                    }
+                string csv;
+                var fromDate = $"{DateTime.Now.Date.AddYears(-3):yyyy-M-d}";
+                var toDate = $"{DateTime.Now.Date:yyyy-M-d}";
+                using (var web = new WebClient())
+                {
+                    var url = $@"https://eodhistoricaldata.com/api/eod/{symbol.Trim()}.{exchange}?from={fromDate}&to={toDate}&api_token={DataController.ApiToken}&period=d";
+                    Log.WriteLine($"{methodName} - {symbol} - {fromDate} - {toDate} - {url}");
+                    csv = web.DownloadString(url);
+                }
 
-                    if (string.IsNullOrEmpty(csv))
-                    {
-                        throw new Exception($"{nameof(csv)} is null or empty.");
-                    }
-                    
-                    using (var parser = new TextFieldParser(new StringReader(csv)))
-                    {
-                        parser.HasFieldsEnclosedInQuotes = true;
-                        parser.SetDelimiters(",");
+                if (string.IsNullOrEmpty(csv))
+                {
+                    Log.WriteLine($"{methodName} - {nameof(csv)} is null or empty.");
 
-                        while (!parser.EndOfData)
+                }
+
+                var stockDataList = new List<tblStockData>();
+
+                using (var parser = new TextFieldParser(new StringReader(csv)))
+                {
+                    parser.HasFieldsEnclosedInQuotes = true;
+                    parser.SetDelimiters(",");
+
+                    while (!parser.EndOfData)
+                    {
+                        var fields = parser.ReadFields();
+                        if (fields == null || !fields.Any() || fields.Length < 7)
                         {
-                            var fields = parser.ReadFields();
-                            var fieldCount = fields.Length;
+                            break;
+                        }
+                        var hasEmptyField = false;
 
-                            if (fieldCount <= 1)
+                        foreach (var field in fields)
+                        {
+                            if (string.IsNullOrEmpty(field) || field.ToLower().Equals("date"))
                             {
+                                hasEmptyField = true;
                                 break;
                             }
-                            var empty = fields.Any(string.IsNullOrEmpty);
-                            if (empty)
-                            {
-                                continue;
-                            }
-                            if (fields[0].ToLower().Contains("date"))
-                            {
-                                continue;
-                            }
-
-                            var symbolData = new tblStockData
-                            {
-                                Symbol = symbol,
-                                Date = Convert.ToDateTime(fields[0]),
-                                Open = decimal.Parse(fields[1]),
-                                High = decimal.Parse(fields[2]),
-                                Low = decimal.Parse(fields[3]),
-                                Close = decimal.Parse(fields[4]),
-                                AdjustedClose = decimal.Parse(fields[5]),
-                                Volume = (int ?) decimal.Parse(fields[6])
-                            };
-
-                            stockDataList.Add(symbolData);
                         }
+                        if (hasEmptyField)
+                        {
+                            continue;
+                        }
+                        Log.WriteLine($"{fields[0]} - {fields[1]} - {fields[2]} - {fields[3]} - {fields[4]} - {fields[5]} - {fields[6]}");
+                        var symbolData = new tblStockData();
+                        symbolData.Symbol = symbol.Trim();
+                        symbolData.Date = Convert.ToDateTime(fields[0]);
+                        symbolData.Open = decimal.Parse(fields[1]);
+                        symbolData.High = decimal.Parse(fields[2]);
+                        symbolData.Low = decimal.Parse(fields[3]);
+                        symbolData.Close = decimal.Parse(fields[4]);
+                        symbolData.AdjustedClose = decimal.Parse(fields[5]);
+                        symbolData.Volume = (int ?) decimal.Parse(fields[6]);
+
+                        stockDataList.Add(symbolData);
                     }
                 }
-                Debug.WriteLine($"Sorting StockData List");
+
+                Log.WriteLine($"{methodName} - Sorting StockData List");
                 stockDataList.Sort((x, y) => DateTime.Compare(x.Date, y.Date));
 
                 return stockDataList;
             }
             catch (Exception exception)
             {
-                Log.Exception(exception);
+                Log.Exception(exception, $"{methodName} - Error occured while getting stockdata from API.");
                 throw;
             }
             finally
             {
-                Log.Exit(nameof(GetStockData));
+                Log.Exit(methodName);
             }
         }
-
     }
 }

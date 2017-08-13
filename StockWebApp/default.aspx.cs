@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Web.UI;
-using DataTable = Google.DataTable.Net.Wrapper.DataTable;
 
 
 namespace StockWebApp
@@ -16,35 +13,39 @@ namespace StockWebApp
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            Log.Enter(nameof(Page_Load));
-
+            const string methodName = nameof(Page_Load);
             try
             {
-                
-                Debug.WriteLine($"Getting Symbol List");
-                var symbolList = DataController.GetSymbols("US");
+                //var symbolList = DataController.GetSymbolsFromApi();
 
-                Debug.WriteLine($"SymbolList length: {symbolList.Count}");
+                //DbConnect.InsertSymbolsIntoDatabase(symbolList);
 
-                //Debug.WriteLine($"Inserting Symbol List");
-                //DbConnect.InsertSymbols(symbolList);
+                var symbolsDbList = DbConnect.GetSymbolsFromDatabase();
 
-                Debug.WriteLine($"Getting SymbolData List");
-                var stockDataList = DataController.GetStockData("US", symbolList);
+                Log.WriteLine($"{methodName} - SymbolList length: {symbolsDbList.Count}");
 
-                Debug.WriteLine($"StockDataList length: {stockDataList.Count}");
+                var count = 0;
+                foreach (var item in symbolsDbList)
+                {
+                    count++;
+                    Log.WriteLine($"{methodName} - {count} - {item.Symbol}");
+                    var stockDataList = DataController.GetStockDataFromApi("US", item.Symbol.Trim());
 
-                Debug.WriteLine($"Inserting StockDataList");
-                DbConnect.InsertStockData(stockDataList);
+                    Log.WriteLine($"{methodName} - StockDataList length: {stockDataList.Count}");
+
+                    DbConnect.InsertStockDataIntoDatabase(stockDataList);
+                }
+
+                Log.WriteLine($"{methodName} - Done");
 
             }
             catch (Exception exception)
             {
-                Log.Exception(exception);
+                Log.Exception(exception, $"{methodName}");
             }
             finally
             {
-                Log.Exit(nameof(Page_Load));
+                Log.Exit(methodName);
             }
         }
     }

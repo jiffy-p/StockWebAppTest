@@ -8,6 +8,11 @@ namespace StockWebApp
 {
     public static class Log
     {
+        public static void WriteLine(string text)
+        {
+            Debug.WriteLine($"{DateTime.Now} - {text}");
+        }
+
         public static void Enter(string text = "")
         {
             Debug.WriteLine($"{DateTime.Now} - Enter - {text}");
